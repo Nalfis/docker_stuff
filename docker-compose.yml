@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+   mysql:
+      image: mysql:5.7
+      volumes:
+        - mysqldbs:/var/lib/mysql:rw
+      ports:
+        - 3306:3306
+      environment:
+        MYSQL_ROOT_PASSWORD: somewordpress
+        MYSQL_DATABASE: teamcitydb
+        MYSQL_USER: teamcity_user
+        MYSQL_PASSWORD: 'teamcity_user_pass'
+   teamcity-server:
+      image: jetbrains/teamcity-server
+      volumes:
+        - teamcity_datadir:/data/teamcity_server/datadir:rw
+        - teamcity_logs:/opt/teamcity/logs:rw
+      ports:
+        - 8111:8111
+   teamcity-agent:
+      image: jetbrains/teamcity-agent
+      volumes:
+        - teamcity_agent_conf:/data/teamcity_agent/conf:rw
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /opt/buildagent/work:/opt/buildagent/work
+        - /opt/buildagent/temp:/opt/buildagent/temp
+        - /opt/buildagent/tools:/opt/buildagent/tools
+        - /opt/buildagent/plugins:/opt/buildagent/plugins
+        - /opt/buildagent/system:/opt/buildagent/system
+      environment:
+        SERVER_URL: 'teamcity-server:8111'
+      depends_on:
+        - teamcity-server
+        - mysql
+volumes:
+  mysqldbs:
+  teamcity_datadir:
+  teamcity_logs:
+  teamcity_agent_conf:
